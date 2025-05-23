@@ -1,23 +1,34 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { useAuth } from './stores/auth'
+const { user, logout, fetchUser } = useAuth()
+const router = useRouter()
+
+fetchUser() // Opcional: para cargar el usuario al iniciar la app
+
+async function handleLogout() {
+  await logout()
+  router.push('/login')
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
+  <header v-if="user">
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
+      <HelloWorld class="logo" />
       <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
+                <RouterLink to="/">Inicio</RouterLink>
+        <RouterLink v-if="!user" to="/login">Iniciar sesión</RouterLink>
+        <RouterLink v-if="!user" to="/register">Registrarse</RouterLink>
+        <RouterLink v-if="user" to="/home">Home</RouterLink>
+        <a v-if="user" href="#" @click.prevent="handleLogout">Cerrar sesión</a>
       </nav>
     </div>
   </header>
 
-  <RouterView />
+  <main>
+    <RouterView />
+  </main>
 </template>
 
 <style scoped>
