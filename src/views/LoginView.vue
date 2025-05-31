@@ -1,13 +1,16 @@
 <script setup>
 import { ref } from "vue";
-import { useAuth } from "@/stores/auth";
+import { useAuthStore } from "@/stores/auth";
+import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
 
 const email = ref("");
 const password = ref("");
 const error = ref("");
 const isLogin = ref(true);
-const { login, register } = useAuth();
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore); // user es reactivo
+const { login, register, logout, fetchUser } = authStore; // funciones
 const router = useRouter();
 
 async function onSubmit() {
@@ -17,9 +20,13 @@ async function onSubmit() {
     if (err) error.value = err.message;
     else router.push("/");
   } else {
-    const { error: err } = await register(email.value, password.value,name.value);
+    const { error: err } = await register(
+      email.value,
+      password.value,
+      name.value
+    );
     if (err) error.value = err.message;
-    else router.push("/");
+    else router.push("/perfil");
   }
 }
 </script>
@@ -41,18 +48,6 @@ async function onSubmit() {
         {{ error }}
       </p>
       <form @submit.prevent="onSubmit">
-                <div v-if="!isLogin" class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-            Nombre
-          </label>
-          <input
-            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 shadow-sm"
-            v-model="name"
-            type="text"
-            placeholder="Tu nombre"
-            required
-          />
-        </div>
         <div className="mb-4">
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
@@ -85,7 +80,7 @@ async function onSubmit() {
         </div>
         <div className="flex flex-col gap-4">
           <button
-            class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 w-full"
+            class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 w-full"
             type="submit"
           >
             {{ isLogin ? "Iniciar sesión" : "Registrarse" }}
