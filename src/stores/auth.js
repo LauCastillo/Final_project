@@ -1,18 +1,35 @@
 import { ref } from 'vue';
-import { signIn, signUp, signOut, getUser } from '../api/supabase/authApi';
+import { defineStore, storeToRefs } from 'pinia';
+import { signIn, signUp, signOut, getUser } from '@/api/supabase/authApi';
+import { usePerfilStore } from "@/stores/perfil";
+import { createPerfil } from '@/api/supabase/perfilApi';
 
-const user = ref(null);
 
-export function useAuth() {
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref(null);
+      const storePerfil = usePerfilStore();
+  const { perfilActual } = storeToRefs(storePerfil);
+  const { cargarPerfil } = storePerfil;
+
   async function login(email, password) {
     const { data, error } = await signIn(email, password);
     if (!error) user.value = data.user;
+    else{
+      user.value = null;
+      if(error.message=="Email not confirmed"){
+        error.message = "Revisa tu correo, debes confirmar que este email es tuyo antes de poder entrar en la aplicación";
+      
+        return { data: null, error: error };
+        }
+    }
     return { data, error };
   }
 
-  async function register(email, password,name) {
-    const { data, error } = await signUp(email, password, name);
-    if (!error) user.value = data.user;
+  async function register(email, password, name) {
+    const { data, error } = await signUp(email, password);
+    if (!error) {
+      user.value = data.user;
+    }
     return { data, error };
   }
 
@@ -22,9 +39,14 @@ export function useAuth() {
   }
 
   async function fetchUser() {
-    const { data } = await getUser();
-    user.value = data.user;
+    if (!user.value) {
+      const { data,error } = await getUser();
+      user.value = data.user;
+      return { data,error };
+    }
+    else return {data: user.value, error: null};
   }
 
+
   return { user, login, register, logout, fetchUser };
-}
+});

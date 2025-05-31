@@ -1,15 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '@/views/HomeView.vue';
-import { useAuth } from '@/stores/auth'; // Importa el store
+import { useAuthStore } from "@/stores/auth";
+import { storeToRefs } from "pinia";
 
- // Adjust the import path as necessary
+// Adjust the import path as necessary
 
+//{ path: '/', component: HomeView, meta: { requiresAuth: true } },
 const routes = [
-  { path: '/login',  component: () => import('@/views/LoginView.vue') },
-  { path: '/register',  component: () => import('@/views/RegisterView.vue') },
-  { path: '/home', component: HomeView, meta: { requiresAuth: true } },
-  { path: '/', component: HomeView, meta: { requiresAuth: true } }
- 
+  { path: '/login', component: () => import('@/views/LoginView.vue') },
+  { path: '/register', component: () => import('@/views/RegisterView.vue') },
+  { path: '/perfil', component: () => import('@/views/PerfilView.vue'), meta: { requiresAuth: true } },
+  { path: '/projects', component: () => import('@/views/ProjectsView.vue'), meta: { requiresAuth: true } },
+  { path: '/', component: () => import('@/views/HomeView.vue'), meta: { requiresAuth: true } },
 ];
 const router = createRouter({
   history: createWebHistory(),
@@ -18,23 +19,20 @@ const router = createRouter({
 
 // Guard global
 router.beforeEach(async (to, from, next) => {
-  const { user, fetchUser } = useAuth();
-
+  const authStore = useAuthStore();
+  const { user } = storeToRefs(authStore); // user es reactivo
+  const { fetchUser } = authStore; // funciones
+  if (!user.value)
+    await fetchUser();
   // Si la ruta requiere autenticación
   if (to.meta.requiresAuth) {
-    // Si el usuario aún no está cargado, intenta cargarlo
-    if (!user.value) {
-      await fetchUser();
-    }
-    // Si sigue sin usuario, redirige a login
-    if (!user.value) {
-      next('/login');
-    } else {
-      next();
-    }
-  } else {
-    next();
+    if (!user.value) return next('/login');
   }
+  else if (user.value && (to.path === '/login' || to.path === '/register')) {
+    // Si ya está autenticado y trata de acceder a login o register, redirige a home
+    return next('/');
+  }
+  next();
 });
 
 export default router;
