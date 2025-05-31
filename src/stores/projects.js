@@ -15,7 +15,7 @@ export const useProjectsStore = defineStore('projects', () => {
   const { cargarPerfil } = storePerfil;
   const projects = ref([]);
   const userProjectStore = useUserProjectStore();
-  const { addUser } = userProjectStore;
+  const { addUserToProject } = userProjectStore;
 
   async function fetchProjects() {
 
@@ -41,7 +41,7 @@ export const useProjectsStore = defineStore('projects', () => {
     if(!project.description) project.description = '';
     const { data, error } = await createProject(project);
        if (!error && data) {
-      addUser(perfilActual.value.id, data.id);
+      addUserToProject({userId:perfilActual.value.id, projectId:data.id});
       projects.value.unshift(data);
     }
     return { data, error };
