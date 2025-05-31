@@ -7,7 +7,6 @@ import { storeToRefs } from "pinia";
 //{ path: '/', component: HomeView, meta: { requiresAuth: true } },
 const routes = [
   { path: '/login', component: () => import('@/views/LoginView.vue') },
-  { path: '/register', component: () => import('@/views/RegisterView.vue') },
   { path: '/perfil', component: () => import('@/views/PerfilView.vue'), meta: { requiresAuth: true } },
   { path: '/projects', component: () => import('@/views/ProjectsView.vue'), meta: { requiresAuth: true } },
   { path: '/', component: () => import('@/views/HomeView.vue'), meta: { requiresAuth: true } },
