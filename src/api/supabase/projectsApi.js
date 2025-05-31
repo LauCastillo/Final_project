@@ -16,7 +16,7 @@ export async function getProjects(userId) {
     .from('project')
     .select('*,user_project(project_id, perfil(id, Nombre, user_id))')
     .eq('user_id', userId)
-    
+
     .order('created_at', { ascending: false });
   return { data, error };
 }
@@ -52,14 +52,28 @@ export async function updateProject(id, updates) {
   return { data, error };
 }
 
-// Eliminar proyecto
+// Eliminar proyecto y sus tareas asociadas
 export async function removeProject(id) {
-  const { error } = await supabase
-    .from('project')
+  const { errortask } = await supabase
+    .from('tareas')
     .delete()
-    .eq('id', id);
+    .eq('project_id', id);
+  if (!errortask) {
+    const { errorProjectUser } = await supabase
+      .from('user_project')
+      .delete()
+      .eq('project_id', id);
+    if (!errorProjectUser) {
+      const { error } = await supabase
+        .from('project')
+        .delete()
+        .eq('id', id);
 
-  return { error };
+      return { error };
+    }
+    return {errorProjectUser};
+  }
+  return {errortask};
 }
 
 // Obtener proyectos asociados al perfil del usuario
@@ -69,7 +83,7 @@ export async function getProjectsByPerfil(perfilId) {
     .from('user_project')
     .select('project_id,project(id, name, description, created_at)')
     .eq('perfil_id', perfilId);
-    
+
   if (userProjectsError) return { data: [], error: userProjectsError };
 
   return { data: userProjects, error: userProjectsError };
