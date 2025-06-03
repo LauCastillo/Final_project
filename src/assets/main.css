@@ -10,10 +10,51 @@
   font-weight: normal;
 }
 
-@media(max-width: 7480px) {
+@media(max-width: 480px) {
   #app {
     padding: 0;
   }
   
 }
-
+@media (max-width: 1000px) {
+  span,
+  select,
+  button,
+  .text-lg,
+  .text-4xl,
+  .font-extrabold,
+  .font-semibold {
+    font-size: 0.95rem !important;
+  }
+  h1,h2 {
+    font-size: 1.7rem !important;
+  }
+}
+@media (max-width: 900px) {
+  span,
+  select,
+  button,
+  .text-lg,
+  .text-4xl,
+  .font-extrabold,
+  .font-semibold {
+    font-size: 0.85rem !important;
+  }
+  h1,h2 {
+    font-size: 1.6rem !important;
+  }
+}
+@media (max-width: 800px) {
+  span,
+  select,
+  button,
+  .text-lg,
+  .text-4xl,
+  .font-extrabold,
+  .font-semibold {
+    font-size: 0.75rem !important;
+  }
+  h1,h2 {
+    font-size: 1.5rem !important;
+  }
+}

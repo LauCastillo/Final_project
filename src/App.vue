@@ -52,7 +52,7 @@ async function comprobarPerfil(userId) {
   else{
     await fetchEstados();
   await fetchProjects();
-  debugger;
+
   const { data, error } = await fetchTasks(true);
   }
 
@@ -73,7 +73,6 @@ onBeforeMount(() => {
   }
 })
 onMounted(() => {
-  debugger;
   if (user.value && !perfilActual.value) {
     comprobarPerfil(user.value.id);
   }
