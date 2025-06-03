@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useTasksStore } from "@/stores/tasks";
 import { useEstadosStore } from "@/stores/estadoTarea";
@@ -38,6 +38,11 @@ const proyectoSeleccionado = ref('todos');
 const mostrarFiltros = ref(true);
 const filtroCompletadas = ref('todas'); // opciones: 'semana', 'mes', 'trimestre', 'todas'
 
+function tareasProjecto(projectId){
+  if(!tasks.value) return [];
+  return tasks.value.filter(t => t.project_id === projectId)
+}
+
 function filtrarTareas(tareas) {
   if (!searchActive.value || !searchTerm.value.trim()) return tareas;
   const term = searchTerm.value.trim().toLowerCase();
@@ -53,6 +58,7 @@ const proyectosFiltrados = computed(() => {
   return projects.value.filter(p => p.id === proyectoSeleccionado.value);
 });
 function filtrarPorCompletadas(tareas) {
+  if(!tareas) return [];
   const ahora = new Date();
   let desde = null;
 
@@ -67,7 +73,7 @@ function filtrarPorCompletadas(tareas) {
     desde.setMonth(ahora.getMonth() - 3);
   }
 
-  return tareas.filter(t => {
+  const tareaFiltrada= tareas.filter(t => {
     // Si la tarea NO está completada, siempre se muestra
     if (!t.completed_at) return true;
     // Si el filtro es "todas", muestra todas las completadas
@@ -76,9 +82,11 @@ function filtrarPorCompletadas(tareas) {
     const fecha = new Date(t.completed_at);
     return fecha >= desde;
   });
+  return tareaFiltrada ||[];
 }
 
 async function cargarDatos() {
+  if(user.value.id && perfilActual.value ){
   loading.value = true;
   await fetchEstados();
   await fetchProjects();
@@ -90,9 +98,17 @@ async function cargarDatos() {
   } finally {
     loading.value = false;
   }
+}else{
+  projects.value=undefined;
+  perfilActual.value=undefined;
+  tasks.value=undefined;
 }
-cargarDatos();
-//onMounted(cargarDatos());
+}
+watch(user, (val) => {
+ if(val) cargarDatos();
+});
+
+//onMounted(async ()=>cargarDatos);
 </script>
 
 <template>
@@ -181,7 +197,7 @@ cargarDatos();
 </transition>
     
     <div
-  v-if="verPorProyectos && proyectosFiltrados.length > 0"
+  v-if="verPorProyectos && proyectosFiltrados && proyectosFiltrados.length > 0"
   class="flex flex-col gap-8 w-full items-center"
 >
   <ProjectBoard
@@ -190,7 +206,7 @@ cargarDatos();
     :project="project"
     :projects="projects"
     :estados="estados"
-    :tasks="filtrarPorCompletadas(filtrarTareas(tasks.filter(t => t.project_id === project.id)))"
+    :tasks="filtrarPorCompletadas(filtrarTareas(tareasProjecto(project.id)))"
     :user="user"
     @add-task="addTask"
     @edit-task="editTask"

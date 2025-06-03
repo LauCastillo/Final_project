@@ -1,15 +1,10 @@
 import { ref } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import { signIn, signUp, signOut, getUser } from '@/api/supabase/authApi';
-import { usePerfilStore } from "@/stores/perfil";
-import { createPerfil } from '@/api/supabase/perfilApi';
-
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
-      const storePerfil = usePerfilStore();
-  const { perfilActual } = storeToRefs(storePerfil);
-  const { cargarPerfil } = storePerfil;
+
 
   async function login(email, password) {
     const { data, error } = await signIn(email, password);
@@ -25,7 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
     return { data, error };
   }
 
-  async function register(email, password, name) {
+  async function register(email, password) {
     const { data, error } = await signUp(email, password);
     if (!error) {
       user.value = data.user;

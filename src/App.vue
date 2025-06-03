@@ -1,19 +1,35 @@
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onBeforeMount } from "vue";
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import { storeToRefs } from "pinia";
+import { storeToRefs, getActivePinia } from "pinia";
 import { usePerfilStore } from "@/stores/perfil";
 import { useProjectsStore } from "@/stores/projects";
+import { useTasksStore } from "@/stores/tasks";
+import { useEstadosStore } from "@/stores/estadoTarea";
+
 import PerfilModal from "@/components/PerfilModal.vue";
 
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const { logout, fetchUser } = authStore;
+
 const perfilStore = usePerfilStore();
 const { perfilActual } = storeToRefs(perfilStore);
 const { cargarPerfil, crearPerfil } = perfilStore;
-const { addProject } = useProjectsStore();
+
+const storeTasks = useTasksStore();
+const { tasks } = storeToRefs(storeTasks);
+const { fetchTasks, addTask, editTask, removeTask } = storeTasks; // funciones
+
+const storeEstados = useEstadosStore();
+const { estados } = storeToRefs(storeEstados);
+const { fetchEstados } = storeEstados;
+
+const storeProject = useProjectsStore();
+const { projects } = storeToRefs(storeProject);
+const { fetchProjects } = storeProject;
+
 
 const showPerfil = ref(false);
 const modoPerfil = ref("editar");
@@ -26,19 +42,38 @@ if (!perfilActual.value) {
 }
 
 async function comprobarPerfil(userId) {
+
   if (!userId) router.push("/login");
   const { data } = await cargarPerfil(userId);
   if (!data) {
     modoPerfil.value = "crear";
     showPerfil.value = true;
   }
-}
+  else{
+    await fetchEstados();
+  await fetchProjects();
+  debugger;
+  const { data, error } = await fetchTasks(true);
+  }
 
+}
+function cleanStore(){
+user.value=null;
+perfilActual.value=null;
+projects.value=null;
+tasks.value=null;
+}
 watch(user, (val) => {
   if (val) comprobarPerfil(val.id);
+  else cleanStore();
 });
-
+onBeforeMount(() => {
+  if (user.value && !perfilActual.value) {
+    comprobarPerfil(user.value.id);
+  }
+})
 onMounted(() => {
+  debugger;
   if (user.value && !perfilActual.value) {
     comprobarPerfil(user.value.id);
   }
@@ -61,8 +96,10 @@ async function handleSavePerfil(perfilData) {
 
 async function handleLogout() {
   showUserMenu.value = false; 
-  mobileMenuOpen.value = false
+  mobileMenuOpen.value = false;
   await logout();
+cleanStore()
+
   router.push("/login");
 }
 

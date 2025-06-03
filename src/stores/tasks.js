@@ -13,7 +13,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
     // Comprobar si ya tenemos todas las tareas de los proyectos solicitados
   function hasTasksForProjects(projectIds) {
-    if (!tasks.value.length) return false;
+    if (!tasks ||tasks.value || !tasks.value.length) return [];
     const existingProjectIds = new Set(tasks.value.map(t => t.project_id));
     return projectIds.every(id => existingProjectIds.has(id));
   }
@@ -58,12 +58,12 @@ export const useTasksStore = defineStore('tasks', () => {
     return { error };
   }
 
-  async function fetchTasks() {
-
-    const { dataProject, errorProject }=await fetchProjects();
+  async function fetchTasks(force=false) {
+    if(tasks.value && !force) return {data:tasks.value,error:null}
+    const { dataProject, errorProject }=await fetchProjects(force);
     if (dataProject.length === 0)return { data: [], error: null };
     const projectIds = projects.value.map(p => p.id);
-    const { data, error }= await fetchTasksByProjects(projectIds);
+    const { data, error }= await fetchTasksByProjects(projectIds,force);
     if (!error) tasks.value = data;
     return { data, error };
   }
