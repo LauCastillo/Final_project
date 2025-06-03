@@ -18,7 +18,9 @@ async function onSubmit() {
   if (isLogin.value) {
     const { error: err } = await login(email.value, password.value);
     if (err) error.value = err.message;
-    else router.push("/");
+    else {
+      (email.value = ""), (password.value = ""), router.push("/");
+    }
   } else {
     const { error: err } = await register(
       email.value,
@@ -26,7 +28,9 @@ async function onSubmit() {
       name.value
     );
     if (err) error.value = err.message;
-    else router.push("/perfil");
+    else {
+      (email.value = ""), (password.value = ""), router.push("/perfil");
+    }
   }
 }
 </script>
