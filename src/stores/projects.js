@@ -17,19 +17,21 @@ export const useProjectsStore = defineStore('projects', () => {
   const userProjectStore = useUserProjectStore();
   const { addUserToProject } = userProjectStore;
 
-  async function fetchProjects() {
-
+  async function fetchProjects(force=false) {
+   
     if (!user.value) return { data: [], error: null };
     if (!perfilActual.value?.id) {
       const { data, error } = await cargarPerfil(user.value.id);
       if (error) return { data: [], error };
     }
     if (!perfilActual.value) return { data: [], error: null };
-    const { data, error } = await fetchProjectsByPerfil(perfilActual.value.id);
+     if(projects.value && !force) return {data:projects.value,error:null}
+    const { data, error } = await fetchProjectsByPerfil(perfilActual.value.id,force);
     return { dataProject: data, errorProject: error };
   }
 
-  async function fetchProjectsByPerfil(perfilId) {
+  async function fetchProjectsByPerfil(perfilId,force=false) {
+    if(projects.value && !force) return {data:projects.value,error:null}
     const { data, error } = await getProjectsByPerfil(perfilId);
     if (!error) {
       projects.value = data.map(p => p.project);;
